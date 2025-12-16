@@ -38,9 +38,9 @@ Then open http://localhost:8080 in your browser.
 
 ```bash
 cd v4
-npx serve
+npx http-server -p 8080
 ```
-Then open the URL shown (usually http://localhost:3000).
+Then open http://localhost:8080 in your browser.
 
 ### Option 3: VS Code Live Server
 
