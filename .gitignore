@@ -1,0 +1,19 @@
+# Personal results (keep private)
+Result/
+Survey/
+
+# v3 monolithic HTML versions
+rockblock_site_survey.html
+rockblock_site_survey_with_skyview.html
+
+# Backup folders
+v4-backup*/
+
+# Workspace files
+*.code-workspace
+
+# OS files
+.DS_Store
+
+# Claude Code
+.claude/
