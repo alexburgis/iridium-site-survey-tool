@@ -47,10 +47,6 @@ export function initApp() {
         if (connectBtn) connectBtn.disabled = true;
     }
 
-    // Apply saved advanced mode state BEFORE initializing visualizations
-    // This ensures correct layout measurements
-    applyAdvancedModeState();
-
     // Initialize modules
     initCoverageGrid();
     initCharts();
@@ -79,20 +75,8 @@ export function initApp() {
 }
 
 /**
- * Apply saved advanced mode state to body class
- * Called early in init before visualizations are created
- */
-function applyAdvancedModeState() {
-    const isAdvanced = localStorage.getItem('advancedMode') === 'true';
-    if (isAdvanced) {
-        document.body.classList.add('advanced-mode');
-    }
-}
-
-/**
  * Initialize the Advanced mode toggle
- * Defaults to LITE mode, persists preference in localStorage
- * Shows disclaimer on first activation
+ * Defaults to LITE mode, shows disclaimer once per browser session
  */
 function initAdvancedToggle() {
     const toggle = document.getElementById('advancedToggle');
@@ -101,13 +85,8 @@ function initAdvancedToggle() {
     const cancelBtn = document.getElementById('advancedDisclaimerCancel');
     const modalClose = disclaimerModal?.querySelector('.modal-close');
 
-    const isAdvanced = localStorage.getItem('advancedMode') === 'true';
-    const hasAcceptedDisclaimer = localStorage.getItem('advancedDisclaimerAccepted') === 'true';
-
-    // Apply toggle button state (body class already applied by applyAdvancedModeState)
-    if (isAdvanced) {
-        toggle?.classList.add('active');
-    }
+    // Track disclaimer acceptance per browser session only
+    let hasAcceptedDisclaimer = sessionStorage.getItem('advancedDisclaimerAccepted') === 'true';
 
     // Trigger redraw of visualizations after layout change
     function triggerLayoutRedraw() {
@@ -122,8 +101,8 @@ function initAdvancedToggle() {
     function enableAdvancedMode() {
         document.body.classList.add('advanced-mode');
         toggle?.classList.add('active');
-        localStorage.setItem('advancedMode', 'true');
-        localStorage.setItem('advancedDisclaimerAccepted', 'true');
+        sessionStorage.setItem('advancedDisclaimerAccepted', 'true');
+        hasAcceptedDisclaimer = true;
         disclaimerModal?.classList.remove('active');
         triggerLayoutRedraw();
     }
@@ -141,13 +120,14 @@ function initAdvancedToggle() {
             // Turning off advanced mode - no confirmation needed
             document.body.classList.remove('advanced-mode');
             toggle.classList.remove('active');
-            localStorage.setItem('advancedMode', 'false');
             triggerLayoutRedraw();
         } else {
             // Turning on advanced mode
             if (hasAcceptedDisclaimer) {
-                // Already accepted - enable directly
-                enableAdvancedMode();
+                // Already accepted this session - enable directly
+                document.body.classList.add('advanced-mode');
+                toggle?.classList.add('active');
+                triggerLayoutRedraw();
             } else {
                 // Show disclaimer modal
                 disclaimerModal?.classList.add('active');
