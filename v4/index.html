@@ -933,40 +933,46 @@
     <div class="modal-overlay" id="helpModal">
         <div class="modal">
             <div class="modal-header">
-                <h2>📖 Site Survey Guide</h2>
+                <h2>Site Survey Guide</h2>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <p><strong>This tool evaluates Iridium satellite visibility using honest, verifiable metrics.</strong></p>
+                <p><strong>This tool collects objective Iridium satellite visibility data from your modem.</strong></p>
 
-                <h3>Key Metrics</h3>
+                <h3>What This Tool Measures</h3>
                 <p><strong>Service Uptime:</strong> Actual measured connectivity - the most reliable metric. Directly answers "can I communicate?"</p>
-                <p><strong>Geometric Coverage:</strong> Observation counts by sky direction. Shows where satellites can be received, without false RSSI correlations.</p>
-                <p><strong>Horizon Visibility:</strong> Critical 8-14° elevation band assessment across all compass directions.</p>
-
-                <h3>Four-Tier Horizon Classification</h3>
-                <p>Each compass direction is classified by comparing its 8-14° observation count to the best direction:</p>
-                <ul style="margin: 10px 0 10px 20px; color: var(--text-secondary);">
-                    <li><strong>Clear (≥70%):</strong> Full visibility, no significant obstruction</li>
-                    <li><strong>Partial (40-70%):</strong> Some reduction, possible minor obstruction</li>
-                    <li><strong>Sparse (&lt;40%):</strong> Significant blocking (trees, buildings, mesh)</li>
-                    <li><strong>Blocked:</strong> Missing observations in critical elevation bands</li>
-                </ul>
-
-                <h3>Verdict Criteria (requires 48+ hours)</h3>
-                <ul style="margin: 10px 0 10px 20px; color: var(--text-secondary);">
-                    <li><strong>✓ EXCELLENT:</strong> 95%+ uptime, 7+ clear directions, no blocked/sparse</li>
-                    <li><strong>✓ GOOD:</strong> 90%+ uptime, 5+ clear directions, no blocked</li>
-                    <li><strong>⚠ ADEQUATE:</strong> 80%+ uptime, 4+ clear directions, ≤1 blocked</li>
-                    <li><strong>⚠ MARGINAL:</strong> 60-80% uptime or significant obstructions</li>
-                    <li><strong>✗ POOR:</strong> &lt;60% uptime or severe obstructions</li>
-                </ul>
+                <p><strong>Satellite Observations:</strong> Position reports from all satellites the modem can hear, shown on the sky plot.</p>
+                <p><strong>Coverage Grid:</strong> Observation counts by sky direction. Shows where satellites can be received.</p>
+                <p><strong>RSSI Distribution:</strong> Signal strength readings over time (site-level, not position-correlated).</p>
 
                 <h3>Survey Duration</h3>
-                <p>Run for <strong>48-72 hours</strong> minimum. Shorter surveys show preliminary results only - intermittent issues may not be captured.</p>
+                <p>Run for <strong>48-72 hours</strong> minimum. Shorter surveys may miss intermittent issues or not capture all satellite passes.</p>
 
                 <h3>Data Honesty</h3>
                 <p>RSSI cannot be attributed to specific sky positions. The modem reports RSSI for its current lock, while simultaneously reporting ALL visible satellites. This tool does not present false RSSI-position correlations.</p>
+
+                <!-- Advanced mode only sections -->
+                <div class="advanced-only" style="display: none;">
+                    <h3 style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">Advanced Mode: Horizon Classification</h3>
+                    <p>Each compass direction is classified by comparing its 8-14° observation count to the best direction:</p>
+                    <ul style="margin: 10px 0 10px 20px; color: var(--text-secondary);">
+                        <li><strong>Clear (≥70%):</strong> Full visibility, no significant obstruction</li>
+                        <li><strong>Partial (40-70%):</strong> Some reduction, possible minor obstruction</li>
+                        <li><strong>Sparse (&lt;40%):</strong> Significant blocking (trees, buildings, mesh)</li>
+                        <li><strong>Blocked:</strong> Missing observations in critical elevation bands</li>
+                    </ul>
+
+                    <h3>Advanced Mode: Verdict Criteria</h3>
+                    <p>Requires 48+ hours of data:</p>
+                    <ul style="margin: 10px 0 10px 20px; color: var(--text-secondary);">
+                        <li><strong>EXCELLENT:</strong> 95%+ uptime, 7+ clear directions, no blocked/sparse</li>
+                        <li><strong>GOOD:</strong> 90%+ uptime, 5+ clear directions, no blocked</li>
+                        <li><strong>ADEQUATE:</strong> 80%+ uptime, ≤1 blocked direction</li>
+                        <li><strong>MARGINAL:</strong> 60-80% uptime or significant obstructions</li>
+                        <li><strong>POOR:</strong> &lt;60% uptime or severe obstructions</li>
+                    </ul>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;"><em>Note: These assessments are heuristic interpretations, not validated against deployment outcomes.</em></p>
+                </div>
             </div>
         </div>
     </div>
