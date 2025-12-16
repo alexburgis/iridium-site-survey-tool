@@ -465,10 +465,28 @@
             align-items: start;
         }
 
-        /* Give terminal more space when both columns fit */
+        /* Fixed row height when both columns fit */
         @media (min-width: 1000px) {
             .bottom-grid {
                 grid-template-columns: 2fr 1fr;
+                grid-template-rows: 400px;
+                align-items: stretch;
+            }
+            .bottom-grid > .card {
+                display: flex;
+                flex-direction: column;
+            }
+            .bottom-grid .terminal-container {
+                flex: 1;
+                height: auto;
+            }
+            /* Right column flex container */
+            .bottom-grid > div {
+                height: 100%;
+            }
+            .bottom-grid .sat-table-container {
+                flex: 1;
+                height: auto;
             }
         }
 
