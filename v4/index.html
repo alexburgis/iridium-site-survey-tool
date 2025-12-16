@@ -355,9 +355,9 @@
 
         #skyCanvas { width: 100%; height: 100%; }
 
-        /* Satellite Table - Responsive height */
+        /* Satellite Table - Fixed height with scroll */
         .sat-table-container {
-            max-height: clamp(200px, 35vh, 350px);
+            height: 250px;
             overflow-y: auto;
         }
 
@@ -880,7 +880,7 @@
             <!-- Right Column -->
             <div style="display: flex; flex-direction: column; gap: 15px;">
                 <!-- Satellite Visibility -->
-                <div class="card" style="flex: 1;">
+                <div class="card">
                     <div class="card-header">
                         <div class="card-title">
                             <div class="card-title-icon">🛰️</div>
