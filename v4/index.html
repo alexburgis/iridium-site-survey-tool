@@ -430,10 +430,9 @@
         .score-poor { color: var(--accent-orange); }
         .score-fail { color: var(--accent-red); }
 
-        /* Terminal - Fill available space */
+        /* Terminal - Fixed height, scroll content */
         .terminal-container {
-            flex: 1;
-            min-height: 200px;
+            height: 300px;
         }
 
         .terminal {
@@ -463,7 +462,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
             gap: 15px;
-            align-items: stretch;
+            align-items: start;
         }
 
         /* Give terminal more space when both columns fit */
@@ -471,12 +470,6 @@
             .bottom-grid {
                 grid-template-columns: 2fr 1fr;
             }
-        }
-
-        /* Make terminal card fill grid cell height */
-        .bottom-grid > .card {
-            display: flex;
-            flex-direction: column;
         }
 
         /* Export buttons */
