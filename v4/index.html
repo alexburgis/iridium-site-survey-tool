@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RockBLOCK Site Survey Tool v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #111820;
+            --bg-tertiary: #1a2130;
+            --bg-card: #151c28;
+            --border-color: #2a3544;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-yellow: #d29922;
+            --accent-orange: #db6d28;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --accent-cyan: #39c5cf;
+            --signal-0: #6e7681;
+            --signal-1: #f85149;
+            --signal-2: #db6d28;
+            --signal-3: #d29922;
+            --signal-4: #3fb950;
+            --signal-5: #58a6ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(88, 166, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(88, 166, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text h1 { font-size: 1.3rem; font-weight: 600; }
+        .logo-text span { font-size: 0.75rem; color: var(--text-secondary); }
+
+        .connection-panel {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--signal-0);
+        }
+
+        .status-dot.connected { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        .status-dot.logging { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-success { background: linear-gradient(135deg, var(--accent-green), #2ea043); color: white; }
+        .btn-danger { background: linear-gradient(135deg, var(--accent-red), #da3633); color: white; }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
+
+        /* Config Bar */
+        .config-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+        }
+
+        .config-bar label { color: var(--text-secondary); }
+        .config-bar input, .config-bar select {
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        .config-bar input { width: 100px; }
+
+        /* Stats Row - Fluid responsive grid */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 15px;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Main Layout - Modern responsive grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            container-type: inline-size;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .card-help {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+
+        .card-help:hover {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .card-body { padding: 15px; }
+
+        /* Coverage Grid (the key visualization) */
+        .coverage-grid-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: 40px repeat(8, 1fr);
+            gap: 2px;
+            font-size: 0.7rem;
+        }
+
+        .coverage-grid-header {
+            background: var(--bg-tertiary);
+            padding: 6px 4px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .coverage-grid-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .coverage-grid-cell:hover { transform: scale(1.1); z-index: 10; }
+
+        .coverage-grid-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .cell-no-data { background: #1a1a2e; color: var(--text-muted); }
+        .cell-obs-1 { background: rgba(88, 166, 255, 0.15); color: #8b949e; }
+        .cell-obs-2 { background: rgba(88, 166, 255, 0.25); color: #c9d1d9; }
+        .cell-obs-3 { background: rgba(88, 166, 255, 0.40); color: #fff; }
+        .cell-obs-4 { background: rgba(88, 166, 255, 0.55); color: #fff; }
+        .cell-obs-5 { background: rgba(88, 166, 255, 0.70); color: #fff; }
+
+        /* Coverage Legend */
+        .coverage-legend {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* Sky Plot */
+        .sky-plot-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+        }
+
+        #skyCanvas { width: 100%; height: 100%; }
+
+        /* Satellite Table - Responsive height */
+        .sat-table-container {
+            max-height: clamp(200px, 35vh, 350px);
+            overflow-y: auto;
+        }
+
+        .sat-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .sat-table th {
+            background: var(--bg-tertiary);
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-secondary);
+            position: sticky;
+            top: 0;
+        }
+
+        .sat-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sat-table tr:hover { background: var(--bg-tertiary); }
+
+        /* Assessment Panel - Container-responsive grid */
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* Container query: stack assessment items when card is narrow */
+        @container (max-width: 320px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .assessment-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .assessment-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .assessment-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .assessment-detail {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .score-excellent { color: var(--accent-green); }
+        .score-good { color: var(--accent-blue); }
+        .score-moderate { color: var(--accent-yellow); }
+        .score-poor { color: var(--accent-orange); }
+        .score-fail { color: var(--accent-red); }
+
+        /* Terminal - Responsive height */
+        .terminal-container {
+            height: clamp(200px, 30vh, 350px);
+        }
+
+        .terminal {
+            background: #0d1117;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .terminal-line { margin-bottom: 2px; line-height: 1.4; }
+        .terminal-line.tx { color: var(--accent-cyan); }
+        .terminal-line.rx { color: var(--accent-green); }
+        .terminal-line.info { color: var(--text-muted); }
+        .terminal-line.error { color: var(--accent-red); }
+
+        /* Charts - Responsive height with minimum */
+        .chart-container {
+            height: clamp(150px, 20vw, 200px);
+        }
+
+        /* Bottom Grid - Modern responsive with auto-fit */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
+            gap: 15px;
+        }
+
+        /* Give terminal more space when both columns fit */
+        @media (min-width: 1000px) {
+            .bottom-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* Export buttons */
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 250px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            display: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body { padding: 20px; }
+        .modal-body p { margin-bottom: 12px; line-height: 1.5; color: var(--text-secondary); }
+        .modal-body h3 { margin: 15px 0 8px; font-size: 1rem; }
+        .modal-body code {
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8em;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--accent-green); }
+        .toast.error { border-color: var(--accent-red); }
+
+        /* TLE visibility list */
+        .tle-sat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tle-sat-name { color: var(--text-primary); }
+        .tle-sat-pos { color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 600px) {
+            .container { padding: 10px; }
+            .config-bar { flex-direction: column; align-items: stretch; }
+            .config-bar input { width: 100%; }
+            .connection-panel { width: 100%; justify-content: center; }
+            .stat-value { font-size: 1.2rem; }
+            .card-body { padding: 12px; }
+            .coverage-grid { font-size: 0.6rem; }
+            .coverage-grid-cell { font-size: 0.55rem; }
+        }
+
+        /* Ensure smooth resizing */
+        * {
+            transition: grid-template-columns 0.2s ease;
+        }
+
+        /* LITE/Advanced Mode Toggle */
+        .advanced-only { display: none !important; }
+
+        /* Advanced mode: show advanced-only elements */
+        body.advanced-mode .advanced-only { display: flex !important; }
+        body.advanced-mode .advanced-only.stat-card { display: block !important; }
+        body.advanced-mode .advanced-only.card { display: block !important; }
+
+        /* Toggle button styling */
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .mode-toggle:hover { border-color: var(--accent-blue); }
+        .mode-toggle.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">📡</div>
+                <div class="logo-text">
+                    <h1>RockBLOCK Site Survey v4</h1>
+                    <span>Iridium 9603 Coverage Analysis</span>
+                </div>
+            </div>
+            <div class="connection-panel">
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <button class="btn btn-primary" id="connectBtn">🔌 Connect</button>
+                <button class="btn btn-success" id="startBtn" disabled>▶️ Start</button>
+                <button class="btn btn-secondary" id="helpBtn">❓ Help</button>
+                <button class="mode-toggle" id="advancedToggle">⚙️ Advanced</button>
+            </div>
+        </header>
+
+        <!-- Configuration Bar -->
+        <div class="config-bar">
+            <label>📍 Observer:</label>
+            <input type="number" id="inputLat" placeholder="Latitude" step="0.0001" value="51.4953">
+            <input type="number" id="inputLon" placeholder="Longitude" step="0.0001" value="-3.17047">
+            <button class="btn btn-secondary" id="setLocationBtn">Set</button>
+            <button class="btn btn-secondary" id="gpsBtn">📍 GPS</button>
+            <span style="color: var(--text-muted);">|</span>
+            <label>Session:</label>
+            <button class="btn btn-secondary" id="saveBtn">💾 Save</button>
+            <button class="btn btn-secondary" id="loadBtn">📂 Load</button>
+            <button class="btn btn-secondary" id="clearBtn">🗑️ Clear</button>
+            <span style="color: var(--text-muted);">|</span>
+            <button class="btn btn-secondary" id="tleBtn">🛰️ TLEs</button>
+        </div>
+
+        <!-- Hidden file input for session loading -->
+        <input type="file" id="sessionFileInput" accept=".json" style="display: none;">
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Current Signal</div>
+                <div class="stat-value" id="currentSignal" style="color: var(--signal-0);">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Reports</div>
+                <div class="stat-value" id="reportCount" style="color: var(--accent-cyan);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">SVs Tracked</div>
+                <div class="stat-value" id="satCount" style="color: var(--accent-purple);">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg RSSI</div>
+                <div class="stat-value" id="avgSignal" style="color: var(--accent-yellow);">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Service <span class="card-help" id="serviceHelp">?</span> <span id="serviceStatus" style="font-size: 0.7rem; color: var(--text-muted);">--</span></div>
+                <div class="stat-value" id="serviceUptimeStat" style="color: var(--text-muted);">--%</div>
+            </div>
+            <div class="stat-card advanced-only">
+                <div class="stat-label">Grid Coverage <span class="card-help" id="gridCoverageHelp">?</span></div>
+                <div class="stat-value" id="gridCoverage" style="color: var(--accent-green);">--%</div>
+            </div>
+            <div class="stat-card advanced-only">
+                <div class="stat-label">Horizon <span class="card-help" id="horizonHelp">?</span></div>
+                <div class="stat-value" id="criticalCoverage" style="color: var(--accent-orange);">--%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Duration</div>
+                <div class="stat-value" id="duration" style="color: var(--text-secondary);">00:00:00</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Coverage Grid -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">📊</div>
+                        Coverage Grid
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Azimuth × Elevation</span>
+                        <span class="card-help" id="coverageGridHelp">?</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="coverage-grid-container">
+                        <div class="coverage-grid" id="coverageGrid">
+                            <!-- Generated by JS -->
+                        </div>
+                        <div class="coverage-legend">
+                            <div class="legend-item"><div class="legend-color cell-no-data"></div> No observations</div>
+                            <div class="legend-item"><div class="legend-color cell-obs-1"></div> Few</div>
+                            <div class="legend-item"><div class="legend-color cell-obs-3"></div> Moderate</div>
+                            <div class="legend-item"><div class="legend-color cell-obs-5"></div> Many</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sky Plot -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">🌐</div>
+                        Sky Plot
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Real-time positions</span>
+                        <span class="card-help" id="skyPlotHelp">?</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="sky-plot-container">
+                        <canvas id="skyCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Assessment + TLE Visibility stacked (hidden in LITE mode) -->
+            <div class="advanced-only" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Site Assessment -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">📋</div>
+                            Site Assessment
+                        </div>
+                        <span class="card-help" id="siteAssessmentHelp">?</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="assessment-grid">
+                            <div class="assessment-item">
+                                <div class="assessment-value" id="serviceUptime">--%</div>
+                                <div class="assessment-label">Service Uptime</div>
+                                <div class="assessment-detail" id="serviceDetail">Measured connectivity</div>
+                            </div>
+                            <div class="assessment-item">
+                                <div class="assessment-value" id="horizonScore">--</div>
+                                <div class="assessment-label">Horizon (8-14°) <span class="card-help" id="criticalBandHelp">?</span></div>
+                                <div class="assessment-detail" id="horizonDetail">Critical low elevation</div>
+                            </div>
+                            <div class="assessment-item">
+                                <div class="assessment-value" id="gridCoverageScore">--%</div>
+                                <div class="assessment-label">Grid Coverage <span class="card-help" id="gridCoverageHelp2">?</span></div>
+                                <div class="assessment-detail" id="gridDetail">Cells with observations</div>
+                            </div>
+                            <div class="assessment-item">
+                                <div class="assessment-value" id="recommendation">--</div>
+                                <div class="assessment-label">Verdict</div>
+                                <div class="assessment-detail" id="recommendationDetail">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TLE Visibility -->
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🛰️</div>
+                            Visible Satellites
+                        </div>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">TLE predictions</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="tleVisibilityList" style="font-size: 0.75rem; overflow-y: auto;">
+                            <div style="color: var(--text-muted); text-align: center; padding: 20px 0;">Load TLEs to see predictions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row -->
+        <div class="main-grid">
+            <!-- Signal Distribution -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">📈</div>
+                        Signal Distribution
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="signalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Azimuth Observations -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">🧭</div>
+                        Direction Observations
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="azimuthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Elevation Observations -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">📐</div>
+                        Elevation Observations
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="elevationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Grid -->
+        <div class="bottom-grid">
+            <!-- Terminal -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-title-icon">💻</div>
+                        Serial Monitor
+                    </div>
+                    <button class="btn btn-secondary" id="clearTerminalBtn" style="padding: 4px 10px; font-size: 0.75rem;">Clear</button>
+                </div>
+                <div class="card-body terminal-container">
+                    <div class="terminal" id="terminal"></div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Satellite Visibility -->
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">🛰️</div>
+                            Satellites Observed
+                        </div>
+                        <span class="card-help" id="satVisibilityHelp">?</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="sat-table-container">
+                            <table class="sat-table" id="satTable">
+                                <thead>
+                                    <tr>
+                                        <th>Satellite</th>
+                                        <th>Obs</th>
+                                        <th>Dirs</th>
+                                        <th>El Range</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="satTableBody">
+                                    <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">No satellites tracked yet</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <div class="card-title-icon">💾</div>
+                            Export Data
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="export-buttons">
+                            <button class="btn btn-secondary" id="exportCSVBtn">📄 CSV</button>
+                            <button class="btn btn-secondary" id="exportJSONBtn">📋 JSON</button>
+                            <button class="btn btn-secondary" id="exportReportBtn">📑 Report</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📖 Site Survey Guide</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>This tool evaluates Iridium satellite visibility using honest, verifiable metrics.</strong></p>
+
+                <h3>Key Metrics</h3>
+                <p><strong>Service Uptime:</strong> Actual measured connectivity - the most reliable metric. Directly answers "can I communicate?"</p>
+                <p><strong>Geometric Coverage:</strong> Observation counts by sky direction. Shows where satellites can be received, without false RSSI correlations.</p>
+                <p><strong>Horizon Visibility:</strong> Critical 8-14° elevation band assessment across all compass directions.</p>
+
+                <h3>Four-Tier Horizon Classification</h3>
+                <p>Each compass direction is classified by comparing its 8-14° observation count to the best direction:</p>
+                <ul style="margin: 10px 0 10px 20px; color: var(--text-secondary);">
+                    <li><strong>Clear (≥70%):</strong> Full visibility, no significant obstruction</li>
+                    <li><strong>Partial (40-70%):</strong> Some reduction, possible minor obstruction</li>
+                    <li><strong>Sparse (&lt;40%):</strong> Significant blocking (trees, buildings, mesh)</li>
+                    <li><strong>Blocked:</strong> Missing observations in critical elevation bands</li>
+                </ul>
+
+                <h3>Verdict Criteria (requires 48+ hours)</h3>
+                <ul style="margin: 10px 0 10px 20px; color: var(--text-secondary);">
+                    <li><strong>✓ EXCELLENT:</strong> 95%+ uptime, 7+ clear directions, no blocked/sparse</li>
+                    <li><strong>✓ GOOD:</strong> 90%+ uptime, 5+ clear directions, no blocked</li>
+                    <li><strong>⚠ ADEQUATE:</strong> 80%+ uptime, 4+ clear directions, ≤1 blocked</li>
+                    <li><strong>⚠ MARGINAL:</strong> 60-80% uptime or significant obstructions</li>
+                    <li><strong>✗ POOR:</strong> &lt;60% uptime or severe obstructions</li>
+                </ul>
+
+                <h3>Survey Duration</h3>
+                <p>Run for <strong>48-72 hours</strong> minimum. Shorter surveys show preliminary results only - intermittent issues may not be captured.</p>
+
+                <h3>Data Honesty</h3>
+                <p>RSSI cannot be attributed to specific sky positions. The modem reports RSSI for its current lock, while simultaneously reporting ALL visible satellites. This tool does not present false RSSI-position correlations.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TLE Modal -->
+    <div class="modal-overlay" id="tleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🛰️ Load Iridium TLEs</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Load TLE data to show predicted satellite positions on the sky plot. Get current Iridium TLEs from
+                   <a href="https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-NEXT&FORMAT=tle" target="_blank" style="color: var(--accent-blue);">CelesTrak</a>.</p>
+
+                <div style="margin: 15px 0;">
+                    <button class="btn btn-primary" id="fetchTLEBtn">🌐 Fetch from CelesTrak</button>
+                    <span style="color: var(--text-muted); margin-left: 10px; font-size: 0.8rem;">or paste below:</span>
+                </div>
+
+                <textarea id="tleInput" placeholder="Paste TLE data here (3-line format)...
+IRIDIUM 123
+1 12345U 97034A   24001.50000000  .00000000  00000-0  00000-0 0  9999
+2 12345  86.4000  45.0000 0002000  90.0000 270.0000 14.34000000000000"
+                    style="width: 100%; height: 200px; background: var(--bg-tertiary); border: 1px solid var(--border-color);
+                           border-radius: 6px; padding: 10px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;
+                           font-size: 0.75rem; resize: vertical;"></textarea>
+
+                <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-success" id="loadTLEBtn">✓ Load TLEs</button>
+                    <button class="btn btn-secondary" id="clearTLEBtn">Clear</button>
+                    <span id="tleStatus" style="color: var(--text-muted); font-size: 0.8rem;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Help Modal -->
+    <div class="modal-overlay" id="cardHelpModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 id="cardHelpTitle">Help</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="cardHelpBody">
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Mode Disclaimer Modal -->
+    <div class="modal-overlay" id="advancedDisclaimerModal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header">
+                <h2>⚠️ Advanced Mode</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>The assessments and verdicts shown in Advanced Mode are subjective interpretations.</strong></p>
+
+                <p>The scoring thresholds, classifications (Clear/Partial/Sparse/Blocked), and site verdicts (Excellent/Good/Adequate/Marginal/Poor) are based on reasonable assumptions about Iridium satellite visibility requirements, but they have not been validated against real-world deployment outcomes.</p>
+
+                <p><strong>Important considerations:</strong></p>
+                <ul style="margin: 10px 0 15px 20px; color: var(--text-secondary);">
+                    <li>Assessment criteria are estimates, not verified standards</li>
+                    <li>Actual connectivity depends on many factors beyond sky visibility</li>
+                    <li>The "verdict" is a guide, not a guarantee</li>
+                    <li>Always use professional judgement for critical deployments</li>
+                </ul>
+
+                <p>The objective data (observation counts, uptime measurements, signal readings) shown in both modes remains factual and verifiable.</p>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn btn-secondary" id="advancedDisclaimerCancel">Cancel</button>
+                    <button class="btn btn-primary" id="advancedDisclaimerAccept">I Understand</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage">Message</span>
+    </div>
+
+    <!-- Load the application module -->
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>
