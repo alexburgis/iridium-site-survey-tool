@@ -194,6 +194,7 @@ export function plotSkyPoint(elevation, azimuth, svId, flash = false) {
 
 /**
  * Draw predicted satellite positions from TLE data
+ * Drawn last so they appear on top of observation dots
  */
 export function drawPredictedSatellites() {
     if (!skyCtx || !skyCanvas) return;
@@ -211,11 +212,11 @@ export function drawPredictedSatellites() {
             if (position && position.elevation > 0) {
                 const { x, y } = skyToCanvas(position.elevation, position.azimuth, size);
 
-                // Draw as cyan circle
+                // Draw bright cyan circle outline at full opacity
                 skyCtx.beginPath();
-                skyCtx.arc(x, y, 4, 0, Math.PI * 2);
-                skyCtx.strokeStyle = '#39c5cf';
-                skyCtx.lineWidth = 1.5;
+                skyCtx.arc(x, y, 5, 0, Math.PI * 2);
+                skyCtx.strokeStyle = '#00ffff';
+                skyCtx.lineWidth = 2;
                 skyCtx.stroke();
             }
         } catch (e) {

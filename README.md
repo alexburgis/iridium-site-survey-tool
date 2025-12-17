@@ -6,7 +6,16 @@ A browser-based tool for evaluating Iridium satellite visibility at a proposed R
 
 This tool connects directly to an Iridium 9602/9603 modem via Web Serial API and collects CIER (Indicator Event Reporting) data to build a picture of satellite visibility and service availability.
 
-![RockBLOCK Site Survey Tool Screenshot](survey_screenshot.png)
+<table>
+  <tr>
+    <td align="center"><strong>LITE Mode</strong></td>
+    <td align="center"><strong>Advanced Mode</strong></td>
+  </tr>
+  <tr>
+    <td><img src="lite_mode.png" width="400" alt="LITE Mode Screenshot"></td>
+    <td><img src="advanced_mode.png" width="400" alt="Advanced Mode Screenshot"></td>
+  </tr>
+</table>
 
 **Key Features:**
 - Real-time sky plot showing satellite observations (colored by satellite ID)
