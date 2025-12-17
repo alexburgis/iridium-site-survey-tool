@@ -66,6 +66,10 @@ Install the "Live Server" extension, right-click `v4/index.html`, and select "Op
 7. Run for **48-72 hours** for reliable results
 8. Use **Save** to preserve data between sessions
 
+### Demo Session
+
+A sample survey session is included in the `Survey/` folder. Load it via **Load** to explore the tool without hardware.
+
 ## LITE vs Advanced Mode
 
 **LITE Mode (default):** Shows objective measurements only - signal strength, satellite reports, service uptime, and duration. The sky plot is larger for better visibility.
