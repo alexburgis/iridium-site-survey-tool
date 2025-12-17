@@ -472,6 +472,7 @@
                 grid-template-rows: 400px;
                 align-items: stretch;
             }
+            /* Serial Monitor card fills and scrolls */
             .bottom-grid > .card {
                 display: flex;
                 flex-direction: column;
@@ -479,14 +480,29 @@
             .bottom-grid .terminal-container {
                 flex: 1;
                 height: auto;
+                min-height: 0;
             }
-            /* Right column flex container */
-            .bottom-grid > div {
+            /* Right column: Satellites expands, Export stays compact */
+            .bottom-grid > div:not(.card) {
                 height: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
             }
-            .bottom-grid .sat-table-container {
+            .bottom-grid > div:not(.card) > .card:first-child {
                 flex: 1;
-                height: auto;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            .bottom-grid > div:not(.card) > .card:first-child > .card-body {
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
+            }
+            .bottom-grid > div:not(.card) .sat-table-container {
+                height: 100%;
+                overflow-y: auto;
             }
         }
 

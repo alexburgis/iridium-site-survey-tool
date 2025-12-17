@@ -95,8 +95,9 @@ export function showCellTooltip(event, azIdx, elIdx) {
     }
 
     tooltipEl.innerHTML = html;
-    tooltipEl.style.left = event.pageX + 10 + 'px';
-    tooltipEl.style.top = event.pageY + 10 + 'px';
+    // Use clientX/Y (viewport-relative) since tooltip uses position: fixed
+    tooltipEl.style.left = event.clientX + 10 + 'px';
+    tooltipEl.style.top = event.clientY + 10 + 'px';
     tooltipEl.style.display = 'block';
 }
 
