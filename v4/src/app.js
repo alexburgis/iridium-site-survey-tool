@@ -27,7 +27,7 @@ import { initGrid, renderCoverageGrid } from './visualization/grid.js';
 import { initUI, updateStats, showToast, clearTerminal } from './visualization/ui.js';
 
 // Data
-import { saveSession, loadSession, clearSession, setupSessionFileInput } from './data/session.js';
+import { saveSession, loadSession, clearSession, setupSessionFileInput, setupLogFileInput } from './data/session.js';
 import { exportCSV, exportJSON, exportReport } from './data/export.js';
 
 // TLE
@@ -57,6 +57,7 @@ export function initApp() {
     // Set up event processors
     setupLineProcessor();
     setupSessionFileInput();
+    setupLogFileInput();
     setupLocationInputs();
 
     // Set up button handlers
@@ -174,7 +175,10 @@ function setupButtonHandlers() {
         }
     });
 
-    // Export
+    // Import / Export
+    document.getElementById('importLogBtn')?.addEventListener('click', () => {
+        document.getElementById('logFileInput')?.click();
+    });
     document.getElementById('exportCSVBtn')?.addEventListener('click', exportCSV);
     document.getElementById('exportJSONBtn')?.addEventListener('click', exportJSON);
     document.getElementById('exportReportBtn')?.addEventListener('click', exportReport);

@@ -8,6 +8,7 @@ import { store, createEmptyCoverageGrid, createInitialState } from '../state/sto
 import { events, EVENT_TYPES } from '../utils/events.js';
 import { downloadFile } from '../utils/helpers.js';
 import { calculateServiceUptime } from '../processing/assessment.js';
+import { ecefToElevAz } from '../processing/coordinates.js';
 
 /**
  * Save current session to a JSON file
@@ -227,6 +228,167 @@ export function setupSessionFileInput() {
             const file = e.target.files[0];
             if (file) {
                 loadSession(file);
+                e.target.value = ''; // Reset for re-selection
+            }
+        });
+    }
+}
+
+/**
+ * Import a CIER log file from external logger
+ * Format: [YYYY-MM-DD HH:MM:SS.mmm] +CIEV:<data>
+ * @param {File} file - Log file to import
+ * @returns {Promise<void>}
+ */
+export async function importLogFile(file) {
+    try {
+        const text = await file.text();
+        const lines = text.split('\n');
+
+        const observer = store.get('observer');
+        let svBeamReports = store.get('svBeamReports');
+        let rssiReports = store.get('rssiReports');
+        let serviceEvents = store.get('serviceEvents');
+        let satellites = store.get('satellites');
+        let coverageGrid = store.get('coverageGrid');
+
+        let importedSvReports = 0;
+        let importedRssi = 0;
+        let importedService = 0;
+        let firstTimestamp = null;
+        let lastTimestamp = null;
+
+        for (const line of lines) {
+            // Skip comments and empty lines
+            if (!line.trim() || line.startsWith('#')) continue;
+
+            // Parse timestamp and CIEV data
+            // Format: [2025-12-17 09:26:36.663] +CIEV:0,3
+            const match = line.match(/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\]\s*\+CIEV:(.+)$/);
+            if (!match) continue;
+
+            const [, timestampStr, cievData] = match;
+            const timestamp = new Date(timestampStr.replace(' ', 'T') + 'Z').getTime();
+
+            if (!firstTimestamp) firstTimestamp = timestamp;
+            lastTimestamp = timestamp;
+
+            const parts = cievData.split(',');
+            const indicator = parseInt(parts[0], 10);
+
+            switch (indicator) {
+                case 0: // Signal strength (RSSI)
+                    const rssi = parseInt(parts[1], 10);
+                    if (!isNaN(rssi)) {
+                        rssiReports.push({ timestamp, rssi });
+                        importedRssi++;
+                    }
+                    break;
+
+                case 1: // Service availability
+                    const available = parts[1] === '1';
+                    serviceEvents.push({ timestamp, available });
+                    importedService++;
+                    break;
+
+                case 2: // Antenna fault - ignore for now
+                    break;
+
+                case 3: // Satellite position data
+                    // Format: +CIEV:3,<svId>,<beamId>,<svBm>,<x>,<y>,<z>
+                    // svBm=1 means satellite position, svBm=0 means beam landing
+                    if (parts.length >= 7) {
+                        const svId = parseInt(parts[1], 10);
+                        const beamId = parseInt(parts[2], 10);
+                        const svBm = parseInt(parts[3], 10);
+                        const x = parseInt(parts[4], 10);
+                        const y = parseInt(parts[5], 10);
+                        const z = parseInt(parts[6], 10);
+
+                        // Only process satellite positions (svBm=1), not beam landings
+                        if (svBm !== 1) continue;
+
+                        // Convert ECEF to Az/El
+                        const { azimuth, elevation } = ecefToElevAz(x, y, z, observer);
+
+                        // Skip below-horizon observations
+                        if (elevation < 0) continue;
+
+                        const report = {
+                            timestamp,
+                            svId,
+                            beamId,
+                            x, y, z,
+                            azimuth,
+                            elevation
+                        };
+
+                        svBeamReports.push(report);
+                        importedSvReports++;
+
+                        // Update satellites map
+                        if (!satellites.has(svId)) {
+                            satellites.set(svId, { reports: [], beams: new Set() });
+                        }
+                        const sat = satellites.get(svId);
+                        sat.reports.push(report);
+                        sat.beams.add(beamId);
+
+                        // Update coverage grid
+                        const azIdx = Math.floor(((azimuth + 22.5) % 360) / 45);
+                        const elIdx = CONFIG.elevationBands.findIndex(b => elevation >= b.min && elevation < b.max);
+                        if (elIdx >= 0) {
+                            const key = `${azIdx}_${elIdx}`;
+                            if (coverageGrid[key]) {
+                                coverageGrid[key].count++;
+                                coverageGrid[key].satellites.add(svId);
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // Update store
+        store.set('svBeamReports', svBeamReports);
+        store.set('rssiReports', rssiReports);
+        store.set('serviceEvents', serviceEvents);
+        store.set('satellites', satellites);
+        store.set('coverageGrid', coverageGrid);
+
+        // Set duration from log timestamps
+        if (firstTimestamp && lastTimestamp) {
+            const logDuration = lastTimestamp - firstTimestamp;
+            const existingDuration = store.get('loadedDuration') || 0;
+            store.set('loadedDuration', existingDuration + logDuration);
+        }
+
+        events.emit(EVENT_TYPES.SESSION_LOADED);
+        events.emit(EVENT_TYPES.TOAST, {
+            message: `Imported ${importedSvReports} observations, ${importedRssi} RSSI, ${importedService} service events`,
+            type: 'success'
+        });
+        events.emit(EVENT_TYPES.TERMINAL_LOG, {
+            message: `Log import complete: ${importedSvReports} SV reports from ${file.name}`,
+            type: 'info'
+        });
+
+    } catch (error) {
+        console.error('Failed to import log file:', error);
+        events.emit(EVENT_TYPES.TOAST, { message: `Import failed: ${error.message}`, type: 'error' });
+    }
+}
+
+/**
+ * Set up file input handler for importing log files
+ */
+export function setupLogFileInput() {
+    const fileInput = document.getElementById('logFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                importLogFile(file);
                 e.target.value = ''; // Reset for re-selection
             }
         });

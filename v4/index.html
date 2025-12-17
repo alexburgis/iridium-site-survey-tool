@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RockBLOCK Site Survey Tool v4</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -941,22 +942,27 @@
                     </div>
                 </div>
 
-                <!-- Export -->
+                <!-- Import / Export -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">
                             <div class="card-title-icon">💾</div>
-                            Export Data
+                            Import / Export
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="export-buttons">
+                            <button class="btn btn-secondary" id="importLogBtn">📥 Import Log</button>
+                            <span style="color: var(--text-muted);">|</span>
                             <button class="btn btn-secondary" id="exportCSVBtn">📄 CSV</button>
                             <button class="btn btn-secondary" id="exportJSONBtn">📋 JSON</button>
                             <button class="btn btn-secondary" id="exportReportBtn">📑 Report</button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Hidden file input for log import -->
+                <input type="file" id="logFileInput" accept=".log,.txt" style="display: none;">
             </div>
         </div>
     </div>

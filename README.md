@@ -22,6 +22,7 @@ This tool connects directly to an Iridium 9602/9603 modem via Web Serial API and
 - Geometric coverage grid (observation counts by direction/elevation)
 - Service availability tracking (the most reliable metric)
 - Session save/load for multi-day surveys
+- **Import log files** from standalone loggers (Pi, Arduino, etc.)
 - CSV, JSON, and text report export
 - **LITE/Advanced modes** - Clean objective data view by default, with optional assessment features
 
@@ -218,7 +219,15 @@ The tool can overlay predicted satellite positions using Two-Line Element (TLE) 
 
 ---
 
-## Data Export
+## Import / Export
+
+### Import Log File
+Import CIER log files from standalone loggers (Raspberry Pi, Arduino, ESP32, etc.). The importer accepts timestamped log files in the format:
+```
+[YYYY-MM-DD HH:MM:SS.mmm] +CIEV:<data>
+```
+
+See [`logger/pi/README.md`](logger/pi/README.md) for the complete log file specification and a reference Python logger implementation.
 
 ### Save Session
 Saves complete survey state to JSON for later continuation. Use this to pause and resume multi-day surveys. Service uptime is preserved across sessions.
@@ -325,7 +334,28 @@ Verify your latitude/longitude are correct. ECEF-to-local conversion depends on 
 
 ---
 
+## Standalone Logger
+
+For unattended surveys without a browser, use the standalone Python logger on a Raspberry Pi:
+
+```bash
+cd logger/pi
+pip3 install -r requirements.txt
+./cier_logger.py
+```
+
+The logger connects to the modem, enables CIER mode, and writes timestamped events to a log file. Import the log file into the Site Survey Tool for analysis.
+
+See [`logger/pi/README.md`](logger/pi/README.md) for full documentation including wiring, GPIO setup, and the log file specification for custom implementations.
+
+---
+
 ## Version History
+
+**v4.1**
+- Added log file import for standalone loggers (Pi, Arduino, ESP32)
+- Added standalone Python CIER logger for Raspberry Pi
+- Added favicon
 
 **v4.0**
 - Complete ES6 modular rewrite for maintainability
