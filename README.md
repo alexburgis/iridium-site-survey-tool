@@ -12,8 +12,8 @@ This tool connects directly to an Iridium 9602/9603 modem via Web Serial API and
     <td align="center"><strong>Advanced Mode</strong></td>
   </tr>
   <tr>
-    <td><img src="lite_mode.png" width="400" alt="LITE Mode Screenshot"></td>
-    <td><img src="advanced_mode.png" width="400" alt="Advanced Mode Screenshot"></td>
+    <td><img src="lite_mode.jpeg" width="400" alt="LITE Mode Screenshot"></td>
+    <td><img src="advanced_mode.jpeg" width="400" alt="Advanced Mode Screenshot"></td>
   </tr>
 </table>
 
